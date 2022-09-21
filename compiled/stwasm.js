@@ -5,7 +5,7 @@ window.worker_stream = 0;
 const STRING = 0;
 const NUMBER = 1;
 
-var wasm_global;
+window.wasm_global = 0;
 window.memory = [];
 
 var env = {
@@ -37,14 +37,24 @@ var env = {
     },
     // ------------ Other ------------
     eval: (char_p_str) => { eval(wasm_string(char_p_str)) },
+    eval_rstr: (char_p_str) => {
+        var at = wasm_global.stackAlloc(String(eval(wasm_string(char_p_str))).length);
+        create_wasm_string(at, eval(wasm_string(char_p_str)));
+        return at;
+    },
     js_sleep: async (sec) => { await new Promise(r => setTimeout(r, Number(sec))) }
+}
+
+function wasm_write_memory(address, data)
+{
+    var mem = new Uint8Array(memory.buffer, address, MAX_STR_SIZE)
+    mem.set(new Uint8Array(data))
 }
 
 function create_wasm_string(address, str) {
     str = str.split("").map(x => x.charCodeAt(0))
     str.push(0)
-    var mem = new Uint8Array(memory.buffer, address, MAX_STR_SIZE)
-    mem.set(new Uint8Array(str))
+    wasm_write_memory(address, str)
 }
 
 function wasm_string(base) {
@@ -64,6 +74,23 @@ function wasm_runFunction(str_fn, params) {
     }
     wasm_global[str_fn]()
 }
+
+function wasm_write_int32 (addr, dec) {
+    var binStr = "00000000000000000000000000000000" + (dec >>> 0).toString(2);
+    //console.log(binStr)
+    var bit8str = [];
+
+    var reps = 0;
+    var index = binStr.length
+    while (reps < 4) {
+        bit8str.push(binStr.substring(index - 8, index))
+        index -= 8;
+        reps ++;
+    }
+    bit8str = bit8str.reverse().map(x => parseInt(x, 2))
+    wasm_write_memory(addr, binStr);
+}
+
 
 function wasm_init(url, imp) {
     return fetch(url)
