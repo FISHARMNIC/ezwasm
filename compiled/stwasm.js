@@ -30,19 +30,25 @@ var env = {
     element_setProperty: (char_p_el, char_p_property, char_p_value) => {
         eval(`document.getElementById("${wasm_string(char_p_el)}").${wasm_string(char_p_property)} = "${wasm_string(char_p_value)}"`);
     },
-    element_getProperty: (char_p_id, char_p_properties, write_to) => {
-        create_wasm_string(write_to,
-            eval(`document.getElementById("${wasm_string(char_p_id)}").${wasm_string(char_p_properties)}`)
-        )
+    element_getProperty: (char_p_id, char_p_properties) => {
+        var evl = String(eval(`document.getElementById("${wasm_string(char_p_id)}").${wasm_string(char_p_properties)}`))
+        var at = malloc(evl.length)
+        create_wasm_string(at, evl);
+        return at
     },
     // ------------ Other ------------
     eval: (char_p_str) => { eval(wasm_string(char_p_str)) },
     eval_rstr: (char_p_str) => {
-        var at = wasm_global.stackAlloc(String(eval(wasm_string(char_p_str))).length);
+        var evl = String(eval(wasm_string(char_p_str)));
+        var at = malloc(evl.length);
         create_wasm_string(at, eval(wasm_string(char_p_str)));
         return at;
     },
     js_sleep: async (sec) => { await new Promise(r => setTimeout(r, Number(sec))) }
+}
+
+function malloc(size) {
+    return wasm_global.stackAlloc(size);
 }
 
 function wasm_write_memory(address, data)

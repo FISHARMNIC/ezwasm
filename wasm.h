@@ -11,7 +11,7 @@ extern void console_double(double number);
 
 extern void eventTarget_addEventListener(char * id, char * event, char * fn_as_string);
 extern void element_setProperty(char * id, char * properties, char * string);
-extern void element_getProperty(char * id, char * properties, char * outString);
+extern char * element_getProperty(char * id, char * properties);
 extern void window_alert(char * string);
 
 extern void eval(char* evalstr);
@@ -19,7 +19,7 @@ extern char* eval_rstr(char *eval_str);
 
 extern void js_sleep(int seconds);
 
-extern int stackAlloc(int am);
+extern char * stackAlloc(int am);
 extern void stackRestore(int p);
 
 
@@ -41,7 +41,8 @@ char * _os_p_ = _outstr_;
 
 #define console_printf(str, ...) console_string(strfmt(str, __VA_ARGS__))
 
-#define close(string) stackRestore((int)string)
-
+#define assert(str) if(!(str)) console_string(strfmt("ASSERTION FAILED: {{%s}}", #str))
+#define wclose(string) stackRestore((int)string); string = NULL
+#define wsafe(string) assert(string != NULL)
 
 

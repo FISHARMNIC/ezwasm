@@ -9,11 +9,12 @@ exported(void) myButtonHandler()
 
 exported(void) input_enter_handle()
 {
-  char inputBuffer[MAX_STR_SIZE];
   // <input id="input"/> 
-  element_getProperty("input", "value", inputBuffer);
   // <p id="inputOut"></p>
+
+  char * inputBuffer = element_getProperty("input", "value");
   element_setProperty("inputOut", "innerText", inputBuffer);
+  wclose(inputBuffer);
 }
 
 int main()
@@ -32,10 +33,9 @@ int main()
 
   eval("console.log('hello from WASM')");
   
-  // Free the string after you're done
   char * date = eval_rstr("(new Date).toString()");
   console_string(date);
-  close(date);
+  wclose(date);
 
   // <button id="input_enter"> Enter</button>
   eventTarget_addEventListener("input_enter", "click", "input_enter_handle");
