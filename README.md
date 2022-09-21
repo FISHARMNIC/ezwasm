@@ -1,6 +1,6 @@
 # ezwasm
 A simple framework that allows live interaction between C and HTML on a website
-```
+```C
 #include "wasm.h"
 
 int counter = 0;
